@@ -1,0 +1,40 @@
+{
+  "name": "diacritics-api",
+  "version": "0.1.0",
+  "keywords": [
+    "diacritic",
+    "diacritics",
+    "api",
+    "javascript"
+  ],
+  "license": "MIT",
+  "homepage": "http://diacritics.io/",
+  "author": {
+    "name": "Julian Motz",
+    "url": "https://github.com/julmot"
+  },
+  "maintainers": [
+    {
+      "name": "Julian Motz",
+      "web": "https://github.com/julmot"
+    },
+    {
+      "name": "Rob Garrison",
+      "web": "https://github.com/Mottie"
+    }
+  ],
+  "description": "An API for the diacritics database",
+  "repository": "diacritics/api",
+  "bugs": {
+    "url": "https://github.com/diacritics/api/issues"
+  },
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "private": true,
+  "dependencies": {
+    "express": "^4.14.0",
+    "node-fetch": "^1.6.3"
+  }
+}
