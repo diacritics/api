@@ -31,10 +31,33 @@ class API {
      */
     initializeRouting() {
         this.app.get("/", (req, res) => {
-            res.json(this.database);
-        });
-        this.app.get("/lang/:lang", (req, res) => {
-            res.json(this.filterByLanguage(req.params.lang));
+            // filter by parameter position
+            const url = req.url.replace(/^\/[\?]?/gmi, ""),
+                parts = url.split("&");
+            let response = this.database;
+            for(let part of parts) {
+                if(!part) { // empty: no parameter
+                    continue;
+                }
+                const [key, value] = part.split("=");
+                if(req.query[key] && value === req.query[key]) {
+                    let fn = this.capitalizeFirstLetter(key.toLowerCase());
+                    fn = `filterBy${fn}`;
+                    if(typeof this[fn] === "function") {
+                        response = this[fn](value, response);
+                        if(typeof response.message !== "undefined") { // error
+                            res.json(response);
+                            return;
+                        }
+                        continue;
+                    }
+                }
+                res.json({
+                    message: "Invalid filter parameter"
+                });
+                return;
+            }
+            res.json(response);
         });
     }
 
@@ -42,28 +65,42 @@ class API {
      * Filters the database by language: Either a ISO 639-1 language code, the
      * language written in English or in the native language
      * @param {string} lang - The language to filter
+     * @param {object} context - The filter context
      * @return {object}
      */
-    filterByLanguage(lang) {
+    filterByLanguage(lang, context) {
         lang = lang.toLowerCase();
-        if(typeof this.database[lang] !== "undefined") {
-            return this.database[lang];
+        if(typeof context[lang] !== "undefined") {
+            let ret = {};
+            ret[lang] = context[lang];
+            return ret;
         }
-        for(let i in this.database) {
-            if(this.database.hasOwnProperty(i)) {
-                const chkLanguage = this.database[i]["metadata"]["language"],
-                    chkNative = this.database[i]["metadata"]["native"];
+        for(let i in context) {
+            if(context.hasOwnProperty(i)) {
+                const chkLanguage = context[i]["metadata"]["language"],
+                    chkNative = context[i]["metadata"]["native"];
+                let ret = {};
+                ret[i] = context[i];
                 if(chkLanguage.toLowerCase() === lang) {
-                    return this.database[i];
+                    return ret;
                 }
                 if(chkNative.toLowerCase() === lang) {
-                    return this.database[i];
+                    return ret;
                 }
             }
         }
         return {
             "message": "Language was not found"
         };
+    }
+
+    /**
+     * Capitalizes the first letter of the provided string
+     * @param {string} str
+     * @return {string}
+     */
+    capitalizeFirstLetter(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
     /**
