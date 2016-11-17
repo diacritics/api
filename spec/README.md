@@ -53,3 +53,13 @@ Filters the response by a specific `base` value. An example would be `u` in case
 Filters the response by a specific `decompose` value. An example would be `ue` in case of `ü`.
 
 **Example**: `/?decompose=ue`
+
+## Fallback
+
+If an invalid filter parameter is passed, the API will response a JSON containing a property `message` indicating the error message. Example:
+
+```javascript
+{
+    "message": "Language was not found"
+}
+```

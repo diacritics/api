@@ -31,7 +31,7 @@ class API {
      */
     initializeRouting() {
         this.app.get("/", (req, res) => {
-            // filter by parameter position
+            // filter in the arrangement of parameters
             const url = decodeURI(req.url).replace(/^\/[\?]?/gmi, ""),
                 parts = url.split("&");
             let response = this.database;
@@ -53,12 +53,34 @@ class API {
                     }
                 }
                 res.json({
-                    message: "Invalid filter parameter"
+                    message: `Invalid filter parameter '${key}'`
                 });
                 return;
             }
             res.json(response);
         });
+    }
+
+    /**
+     * Searches for a specific metadata information inside the context and
+     * returns an array containing all found language codes
+     * @param {string} key - The metadata name
+     * @param {string} value - The metadata value to search for
+     * @return {array} - An array of found language codes
+     */
+    findByMetadata(key, value, context) {
+        let ret = [];
+        for(let lang in context) {
+            if(context.hasOwnProperty(lang)) {
+                const meta = context[lang]["metadata"];
+                if(typeof meta[key] !== "undefined") {
+                    if(meta[key].toLowerCase() === value.toLowerCase()) {
+                        ret.push(lang);
+                    }
+                }
+            }
+        }
+        return ret;
     }
 
     /**
@@ -70,24 +92,20 @@ class API {
      */
     filterByLanguage(lang, context) {
         lang = lang.toLowerCase();
+        let ret = {};
         if(typeof context[lang] !== "undefined") {
-            let ret = {};
             ret[lang] = context[lang];
             return ret;
         }
-        for(let i in context) {
-            if(context.hasOwnProperty(i)) {
-                const chkLanguage = context[i]["metadata"]["language"],
-                    chkNative = context[i]["metadata"]["native"];
-                let ret = {};
-                ret[i] = context[i];
-                if(chkLanguage.toLowerCase() === lang) {
-                    return ret;
-                }
-                if(chkNative.toLowerCase() === lang) {
-                    return ret;
-                }
-            }
+        const byLang = this.findByMetadata("language", lang, context);
+        if(byLang.length) {
+            ret[byLang[0]] = context[byLang[0]];
+            return ret;
+        }
+        const byNative = this.findByMetadata("native", lang, context);
+        if(byNative.length) {
+            ret[byNative[0]] = context[byNative[0]];
+            return ret;
         }
         return {
             "message": "Language was not found"
