@@ -37,9 +37,10 @@ Filters the response by continent. Must be a [ISO-3166](https://en.wikipedia.org
 
 ### diacritic
 
-Filters the response by a specific diacritic. An example would be `ü`.
+Filters the response by a specific diacritic. An example would be `ü`.  
+Please note that you might need to encode the diacritic, e.g. using [`encodeURI()`](http://www.w3schools.com/jsref/jsref_encodeuri.asp).
 
-**Example**: `/?diacritic=ü`
+**Example**: `/?diacritic=%C3%BC`
 
 ### base
 

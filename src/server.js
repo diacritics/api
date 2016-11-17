@@ -32,7 +32,7 @@ class API {
     initializeRouting() {
         this.app.get("/", (req, res) => {
             // filter by parameter position
-            const url = req.url.replace(/^\/[\?]?/gmi, ""),
+            const url = decodeURI(req.url).replace(/^\/[\?]?/gmi, ""),
                 parts = url.split("&");
             let response = this.database;
             for(let part of parts) {
