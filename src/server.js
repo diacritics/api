@@ -170,6 +170,24 @@ class API {
     }
 
     /**
+     * Filters the given context (database) by the given alphabet. Alphabet must
+     * be a ISO 15924 code, e.g. Latn
+     * @param {string} alphabet - The alphabet to filter
+     * @param {object} context - The filter context (database, can already be
+     * filtered)
+     * @return {object} - The filtered database
+     */
+    handleAlphabetFilter(alphabet, context) {
+        const matches = this.findByMetadata("alphabet", alphabet, context);
+        if(Object.keys(matches).length) {
+            return this.filterByLanguage(matches, context);
+        }
+        return {
+            "message": "Alphabet was not found"
+        };
+    }
+
+    /**
      * Capitalizes the first letter of the provided string
      * @param {string} str
      * @return {string}
