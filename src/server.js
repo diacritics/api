@@ -8,29 +8,24 @@
 const express = require("express"),
     fetch = require("node-fetch");
 
+/**
+ * API
+ */
 class API {
 
-    /**
-     * Initializes the API
-     * @param {API~startCallback} cb - A callback function
-     */
-    constructor(cb) {
+    constructor() {
         this.diacriticsURL = "https://git.io/vXN2T";
         this.app = express();
         this.port = parseInt(process.argv.slice(2)[0]);
-        this.initializeRouting();
-        fetch(this.diacriticsURL).then(res => {
-            return res.json();
-        }).then(json => {
-            this.database = json;
-            this.start(cb);
-        });
+        this.database = {};
+        this.initializeFilterRoute();
+        this.initializeErrorRoute();
     }
 
     /**
-     * Initializes routing
+     * Initializes the filter route
      */
-    initializeRouting() {
+    initializeFilterRoute() {
         this.app.get("/", (req, res) => {
             let response = this.database;
             for(let query in req.query) {
@@ -44,15 +39,31 @@ class API {
                     } else if(typeof response.message !== "undefined") {
                         res.json(response);
                         return;
+                    } else if(!Object.keys(response).length) {
+                        res.json({
+                            "message": "No entries found"
+                        });
+                        return;
                     }
-                    continue;
+                } else {
+                    res.json({
+                        "message": `Invalid filter parameter '${key}'`
+                    });
+                    return;
                 }
-                res.json({
-                    message: `Invalid filter parameter '${key}'`
-                });
-                return;
             }
             res.json(response);
+        });
+    }
+
+    /**
+     * Initializes the error route
+     */
+    initializeErrorRoute() {
+        this.app.use((req, res, next) => {
+            res.status(404).send({
+                "message": "Sorry, something went wrong"
+            });
         });
     }
 
@@ -83,7 +94,7 @@ class API {
     /**
      * An object that has the language code as the key and an array of language
      * variants as the value
-     * @typedef API~findByMetadataReturn
+     * @typedef API~findLanguageByMetadataReturn
      * @type {object.<array>}
      */
     /**
@@ -93,9 +104,9 @@ class API {
      * @param {string} value - The metadata value to search for
      * @param {object} context - The filter context (database, can already be
      * filtered)
-     * @return {API~findByMetadataReturn}
+     * @return {API~findLanguageByMetadataReturn}
      */
-    findByMetadata(key, value, context) {
+    findLanguageByMetadata(key, value, context) {
         const addIfEqual = (a, b, lang, variant) => {
             if(a.toLowerCase() === b.toLowerCase()) {
                 if(typeof ret[lang] === "undefined") {
@@ -127,7 +138,7 @@ class API {
     /**
      * Filters the context (database) by the given language object containing
      * languages and language variants
-     * @param {API~findByMetadataReturn} langObj
+     * @param {API~findLanguageByMetadataReturn} langObj
      * @param {object} context - The filter context (database)
      * @return {object} - The filtered database
      */
@@ -147,90 +158,6 @@ class API {
     }
 
     /**
-     * Checks whether the given language is available in the database and if so,
-     * filters the database using <code>findByMetadata</code> and
-     * <code>filterByLanguage</code>.
-     * Language can either be a ISO 639-1 language code, the language written in
-     * English or in the native language
-     * @param {string} lang - The language to filter
-     * @param {object} context - The filter context (database, can already be
-     * filtered)
-     * @return {object} - The filtered database
-     */
-    handleLanguageFilter(lang, context) {
-        lang = lang.toLowerCase();
-        if(typeof context[lang] !== "undefined") {
-            let ret = {};
-            ret[lang] = context[lang];
-            return ret;
-        }
-        const byLang = this.findByMetadata("language", lang, context);
-        if(Object.keys(byLang).length) {
-            return this.filterByLanguage(byLang, context);
-        }
-        const byNative = this.findByMetadata("native", lang, context);
-        if(Object.keys(byNative).length) {
-            return this.filterByLanguage(byNative, context);
-        }
-        return {
-            "message": `Language '${lang}' was not found`
-        };
-    }
-
-    /**
-     * Filters the given context (database) by the given variant
-     * @param {string} variant - The language variant to filter
-     * @param {object} context - The filter context (database, can already be
-     * filtered)
-     * @return {object} - The filtered database
-     */
-    handleVariantFilter(variant, context) {
-        const matches = this.findByMetadata("variant", variant, context);
-        if(Object.keys(matches).length) {
-            return this.filterByLanguage(matches, context);
-        }
-        return {
-            "message": `Variant '${variant}' was not found`
-        };
-    }
-
-    /**
-     * Filters the given context (database) by the given alphabet. Alphabet must
-     * be a ISO 15924 code, e.g. Latn
-     * @param {string} alphabet - The alphabet to filter
-     * @param {object} context - The filter context (database, can already be
-     * filtered)
-     * @return {object} - The filtered database
-     */
-    handleAlphabetFilter(alphabet, context) {
-        const matches = this.findByMetadata("alphabet", alphabet, context);
-        if(Object.keys(matches).length) {
-            return this.filterByLanguage(matches, context);
-        }
-        return {
-            "message": `Alphabet '${alphabet}' was not found`
-        };
-    }
-
-    /**
-     * Filters the given context (database) by the given continent. Continent
-     * must be a ISO ISO-3166 continent code, e.g. EU
-     * @param {string} continent - The continent to filter
-     * @param {object} context - The filter context (database, can already be
-     * filtered)
-     * @return {object} - The filtered database
-     */
-    handleContinentFilter(continent, context) {
-        const matches = this.findByMetadata("continent", continent, context);
-        if(Object.keys(matches).length) {
-            return this.filterByLanguage(matches, context);
-        }
-        return {
-            "message": `Continent '${continent}' was not found`
-        };
-    }
-
-    /**
      * Removes data from the given context, based on the return value of the
      * filter function
      * @param {API~filterByData} filterFn
@@ -243,13 +170,13 @@ class API {
      */
     removeNonMatchingData(filterFn, context, property = null) {
         this.forEachLanguageVariant(context, (lang, variant, json) => {
-            for(let char in json["data"]) {
-                if(json["data"].hasOwnProperty(char)) {
+            for(let char in json.data) {
+                if(json.data.hasOwnProperty(char)) {
                     let param;
                     if(property === null) {
                         param = char;
                     } else {
-                        param = json["data"][char][property];
+                        param = json.data[char].mapping[property];
                     }
                     if(!filterFn(param)) {
                         delete context[lang][variant].data[char];
@@ -279,13 +206,13 @@ class API {
     filterByData(filterFn, context, property = null) {
         let matchingLanguages = {};
         this.forEachLanguageVariant(context, (lang, variant, json) => {
-            for(let char in json["data"]) {
-                if(json["data"].hasOwnProperty(char)) {
+            for(let char in json.data) {
+                if(json.data.hasOwnProperty(char)) {
                     let param;
                     if(property === null) {
                         param = char;
                     } else {
-                        param = json["data"][char][property]
+                        param = json.data[char].mapping[property];
                     }
                     if(filterFn(param)) {
                         if(typeof matchingLanguages[lang] === "undefined") {
@@ -298,8 +225,98 @@ class API {
         });
         context = this.filterByLanguage(matchingLanguages, context);
         // remove unnecessary data from context by reference
-        this.removeNonMatchingData(context, property);
+        this.removeNonMatchingData(filterFn, context, property);
         return context;
+    }
+
+    /**
+     * Checks whether the given language is available in the database and if so,
+     * filters the database using <code>findLanguageByMetadata</code> and
+     * <code>filterByLanguage</code>.
+     * Language can either be a ISO 639-1 language code, the language written in
+     * English or in the native language
+     * @param {string} lang - The language to filter
+     * @param {object} context - The filter context (database, can already be
+     * filtered)
+     * @return {object} - The filtered database
+     */
+    handleLanguageFilter(lang, context) {
+        lang = lang.toLowerCase();
+        if(typeof context[lang] !== "undefined") {
+            let ret = {};
+            ret[lang] = context[lang];
+            return ret;
+        }
+        const byLang = this.findLanguageByMetadata("language", lang, context);
+        if(Object.keys(byLang).length) {
+            return this.filterByLanguage(byLang, context);
+        }
+        const byNative = this.findLanguageByMetadata("native", lang, context);
+        if(Object.keys(byNative).length) {
+            return this.filterByLanguage(byNative, context);
+        }
+        return {
+            "message": `Language '${lang}' was not found`
+        };
+    }
+
+    /**
+     * Filters the given context (database) by the given variant
+     * @param {string} variant - The language variant to filter
+     * @param {object} context - The filter context (database, can already be
+     * filtered)
+     * @return {object} - The filtered database
+     */
+    handleVariantFilter(variant, context) {
+        const matches = this.findLanguageByMetadata(
+            "variant", variant, context
+        );
+        if(Object.keys(matches).length) {
+            return this.filterByLanguage(matches, context);
+        }
+        return {
+            "message": `Variant '${variant}' was not found`
+        };
+    }
+
+    /**
+     * Filters the given context (database) by the given alphabet. Alphabet must
+     * be a ISO 15924 code, e.g. Latn
+     * @param {string} alphabet - The alphabet to filter
+     * @param {object} context - The filter context (database, can already be
+     * filtered)
+     * @return {object} - The filtered database
+     */
+    handleAlphabetFilter(alphabet, context) {
+        const matches = this.findLanguageByMetadata(
+            "alphabet", alphabet, context
+        );
+        if(Object.keys(matches).length) {
+            return this.filterByLanguage(matches, context);
+        }
+        return {
+            "message": `Alphabet '${alphabet}' was not found`
+        };
+    }
+
+    /**
+     * Filters the given context (database) by the given continent. Continent
+     * must be a ISO ISO-3166 continent code, e.g. EU
+     * @param {string} continent - The continent to filter
+     * @param {object} context - The filter context (database, can already be
+     * filtered)
+     * @return {object} - The filtered database
+     */
+    handleContinentFilter(continent, context) {
+        const matches = this.findLanguageByMetadata(
+            "continent", continent, context
+        );
+        if(Object.keys(matches).length) {
+            return this.filterByLanguage(matches, context);
+        }
+        return {
+            "message": `Continent '${continent}' was not found`
+        };
     }
 
     /**
@@ -310,9 +327,53 @@ class API {
      * @return {object} - The filtered database
      */
     handleDiacriticFilter(diacritic, context) {
-        return this.filterByData(val => {
+        const ret = this.filterByData(val => {
             return val === diacritic;
         }, context);
+        if(Object.keys(ret).length) {
+            return ret;
+        }
+        return {
+            "message": `Diacritic '${diacritic}' was not found`
+        };
+    }
+
+    /**
+     * Filters the given context (database) by the given base character
+     * @param {string} base - The base character to filter
+     * @param {object} context - The filter context (database, can already be
+     * filtered)
+     * @return {object} - The filtered database
+     */
+    handleBaseFilter(base, context) {
+        const ret = this.filterByData(val => {
+            return val === base;
+        }, context, "base");
+        if(Object.keys(ret).length) {
+            return ret;
+        }
+        return {
+            "message": `Base character '${base}' was not found`
+        };
+    }
+
+    /**
+     * Filters the given context (database) by the given decompose value
+     * @param {string} decompose - The decompose value to filter
+     * @param {object} context - The filter context (database, can already be
+     * filtered)
+     * @return {object} - The filtered database
+     */
+    handleDecomposeFilter(decompose, context) {
+        const ret = this.filterByData(val => {
+            return val === decompose;
+        }, context, "decompose");
+        if(Object.keys(ret).length) {
+            return ret;
+        }
+        return {
+            "message": `Decompose value '${decompose}' was not found`
+        };
     }
 
     /**
@@ -325,12 +386,15 @@ class API {
      * @param {API~startCallback} cb - A callback function
      */
     start(cb) {
-        this.app.listen(this.port, () => {
-            cb(this.port);
+        fetch(this.diacriticsURL).then(res => {
+            return res.json();
+        }).then(json => {
+            this.database = json;
+            this.app.listen(this.port, () => {
+                cb(this.port);
+            });
         });
     }
 }
 
-new API(port => {
-    console.log(`Server started: http://localhost:${port}`);
-});
+module.exports = API;

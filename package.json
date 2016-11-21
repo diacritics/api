@@ -28,10 +28,10 @@
   "bugs": {
     "url": "https://github.com/diacritics/api/issues"
   },
-  "main": "src/server.js",
+  "main": "src/start.js",
   "scripts": {
-    "dev": "nodemon src/server.js 8080",
-    "start": "node src/server.js 80"
+    "dev": "nodemon src/start.js 8080",
+    "start": "node src/start.js 80"
   },
   "private": true,
   "dependencies": {
