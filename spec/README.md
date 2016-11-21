@@ -2,16 +2,15 @@
 
 > Route and filter specification for the diacritics API
 
+## General
 
-## Structure of the API
+The API provides just one route, `/`. If you're calling it without any parameter, the response will be the entire diacritics database. But, you can provide one or more of the following parameters to filter the response. They are divided into two types, metadata filters and data filters, because they are returning different data. You can combine them if you need.
 
-The API provides just one route, `/`. If you're calling it without any parameter, the response will be the entire diacritics database. But, you can provide one or more of the following parameters to filter the response. The response will be filtered according to the given parameter positions. For example if you request `/?continent=EU&alphabet=Latn` then the response will be first filtered by content and by alphabet afterwards.
+Please note that the database specification including its properties can be found in [its repository](https://github.com/diacritics/database/tree/master/spec).
 
-Please note that specifying some parameters in combination makes so sense. For example filtering by language and then by continent. The other way around it would make sense.
+## Metadata Filter Parameters
 
-Please also note that the database specification including its properties can be found in [its repository](https://github.com/diacritics/database/tree/master/spec).
-
-## Filter Parameters
+These filters don't manipulate the actual data, therefore the response will be almost identical like specified in [the specification](https://github.com/diacritics/database/tree/master/spec#31-diacriticsjson). The only difference is that it will only list languages or language variants that are matching the specified metadata filters.
 
 ### language
 
@@ -40,6 +39,10 @@ Filters the response by alphabet. Must be a [ISO 15924](https://en.wikipedia.org
 Filters the response by continent. Must be a [ISO-3166](https://en.wikipedia.org/wiki/List_of_sovereign_states_and_dependent_territories_by_continent_%28data_file%29) continent code, e.g. `EU`.
 
 **Example**: `/?continent=EU`
+
+## Data Filter Parameters
+
+These filters will only list languages or language variants that are matching the specified data filters, just like the metadata filters. Additionally, they will only list the mapping information that match the filters.
 
 ### diacritic
 
