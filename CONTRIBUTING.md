@@ -10,10 +10,18 @@ Before you start developing, you should clone or download this repository and ru
 $ npm install
 ```
 
-To start the API server run:
+To start the API server for development run:
+
+```bash
+$ npm run dev
+```
+
+For production run:
 
 ```bash
 $ npm start
 ```
+
+The development server will automatically restart the server on file changes and uses a different port.
 
 [node-js]: https://nodejs.org/en/

@@ -30,11 +30,15 @@
   },
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js"
+    "dev": "nodemon src/server.js 8080",
+    "start": "node src/server.js 80"
   },
   "private": true,
   "dependencies": {
     "express": "^4.14.0",
     "node-fetch": "^1.6.3"
+  },
+  "devDependencies": {
+    "nodemon": "^1.11.0"
   }
 }

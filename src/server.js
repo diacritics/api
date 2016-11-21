@@ -17,7 +17,7 @@ class API {
     constructor(cb) {
         this.diacriticsURL = "https://git.io/vXN2T";
         this.app = express();
-        this.port = 80;
+        this.port = parseInt(process.argv.slice(2)[0]);
         this.initializeRouting();
         fetch(this.diacriticsURL).then(res => {
             return res.json();
