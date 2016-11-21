@@ -14,7 +14,7 @@ class API {
      * Initializes the API
      */
     constructor() {
-        this.diacriticsURL = "https://git.io/vXdol";
+        this.diacriticsURL = "https://git.io/vXN2T";
         this.app = express();
         this.port = 8080;
         this.initializeRouting();
@@ -83,6 +83,9 @@ class API {
                 for(let variant in context[lang]) {
                     if(context[lang].hasOwnProperty(variant)) {
                         const meta = context[lang][variant]["metadata"];
+                        if(typeof meta[key] === "undefined") {
+                            continue; // e.g. "variant" isn't always available
+                        }
                         if(meta[key].toLowerCase() === value.toLowerCase()) {
                             if(typeof ret[lang] === "undefined") {
                                 ret[lang] = [];
@@ -146,6 +149,23 @@ class API {
         }
         return {
             "message": "Language was not found"
+        };
+    }
+
+    /**
+     * Filters the given context (database) by the given variant
+     * @param {string} variant - The language variant to filter
+     * @param {object} context - The filter context (database, can already be
+     * filtered)
+     * @return {object} - The filtered database
+     */
+    handleVariantFilter(variant, context) {
+        const matches = this.findByMetadata("variant", variant, context);
+        if(Object.keys(matches).length) {
+            return this.filterByLanguage(matches, context);
+        }
+        return {
+            "message": "Variant was not found"
         };
     }
 

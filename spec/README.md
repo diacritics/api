@@ -23,6 +23,12 @@ Filters the response by language. Can be one of the following case insensitive v
 
 **Example**: `/?language=de`
 
+### variant
+
+Filters the response by a language variant.
+
+**Example**: `/?variant=Austria`
+
 ###  alphabet
 
 Filters the response by alphabet. Must be a [ISO 15924](https://en.wikipedia.org/wiki/ISO_15924) code, e.g. `Latn`.
