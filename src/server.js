@@ -77,6 +77,16 @@ class API {
      * @return {API~findByMetadataReturn}
      */
     findByMetadata(key, value, context) {
+        const addIfEqual = (a, b, lang, variant) => {
+            if(a.toLowerCase() === b.toLowerCase()) {
+                if(typeof ret[lang] === "undefined") {
+                    ret[lang] = [];
+                }
+                ret[lang].push(variant);
+                return true;
+            }
+            return false;
+        };
         let ret = {};
         for(let lang in context) {
             if(context.hasOwnProperty(lang)) {
@@ -85,12 +95,14 @@ class API {
                         const meta = context[lang][variant]["metadata"];
                         if(typeof meta[key] === "undefined") {
                             continue; // e.g. "variant" isn't always available
-                        }
-                        if(meta[key].toLowerCase() === value.toLowerCase()) {
-                            if(typeof ret[lang] === "undefined") {
-                                ret[lang] = [];
+                        } else if(Array.isArray(meta[key])) { // e.g. continent
+                            for(let item of meta[key]) {
+                                if(addIfEqual(item, value, lang, variant)) {
+                                    break;
+                                }
                             }
-                            ret[lang].push(variant);
+                        } else {
+                            addIfEqual(meta[key], value, lang, variant);
                         }
                     }
                 }
@@ -184,6 +196,24 @@ class API {
         }
         return {
             "message": "Alphabet was not found"
+        };
+    }
+
+    /**
+     * Filters the given context (database) by the given continent. Continent
+     * must be a ISO ISO-3166 continent code, e.g. EU
+     * @param {string} continent - The continent to filter
+     * @param {object} context - The filter context (database, can already be
+     * filtered)
+     * @return {object} - The filtered database
+     */
+    handleContinentFilter(continent, context) {
+        const matches = this.findByMetadata("continent", continent, context);
+        if(Object.keys(matches).length) {
+            return this.filterByLanguage(matches, context);
+        }
+        return {
+            "message": "Continent was not found"
         };
     }
 
