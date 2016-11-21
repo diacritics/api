@@ -39,7 +39,9 @@ class API {
                 fn = `handle${fn.charAt(0).toUpperCase()}${fn.slice(1)}Filter`;
                 if(typeof this[fn] === "function") {
                     response = this[fn](value, response);
-                    if(typeof response.message !== "undefined") { // error
+                    if(typeof response !== "object" || response === null) {
+                        throw new Error("Invalid filter response");
+                    } else if(typeof response.message !== "undefined") {
                         res.json(response);
                         return;
                     }
@@ -226,6 +228,91 @@ class API {
         return {
             "message": `Continent '${continent}' was not found`
         };
+    }
+
+    /**
+     * Removes data from the given context, based on the return value of the
+     * filter function
+     * @param {API~filterByData} filterFn
+     * @param {object} context - The filter context (database, can already be
+     * filtered)
+     * @param {string} [property=null] - The property name of a mapping
+     * information, e.g. <code>base</code> that will be passed to the filter
+     * function. If the property is <code>null</code> the diacritic (key) itself
+     * will be passed to the filter function
+     */
+    removeNonMatchingData(filterFn, context, property = null) {
+        this.forEachLanguageVariant(context, (lang, variant, json) => {
+            for(let char in json["data"]) {
+                if(json["data"].hasOwnProperty(char)) {
+                    let param;
+                    if(property === null) {
+                        param = char;
+                    } else {
+                        param = json["data"][char][property];
+                    }
+                    if(!filterFn(param)) {
+                        delete context[lang][variant].data[char];
+                    }
+                }
+            }
+        });
+        return context;
+    }
+
+    /**
+     * A function that will be called to filter. It should return true when the
+     * given value is to be kept, otherwise false
+     * @callback API~filterByData
+     * @param {string} value - The value of the specified property
+     */
+    /**
+     * Filters the given context by the given data property
+     * @param {API~filterByData} filterFn
+     * @param {object} context - The filter context (database, can already be
+     * filtered)
+     * @param {string} [property=null] - The property name of a mapping
+     * information, e.g. <code>base</code> that will be passed to the filter
+     * function. If the property is <code>null</code> the diacritic (key) itself
+     * will be passed to the filter function
+     */
+    filterByData(filterFn, context, property = null) {
+        let matchingLanguages = {};
+        this.forEachLanguageVariant(context, (lang, variant, json) => {
+            for(let char in json["data"]) {
+                if(json["data"].hasOwnProperty(char)) {
+                    let param;
+                    if(property === null) {
+                        param = char;
+                    } else {
+                        param = json["data"][char][property]
+                    }
+                    if(filterFn(param)) {
+                        if(typeof matchingLanguages[lang] === "undefined") {
+                            matchingLanguages[lang] = [];
+                        }
+                        matchingLanguages[lang].push(variant);
+                    }
+                }
+            }
+        });
+        context = this.filterByLanguage(matchingLanguages, context);
+        // remove unnecessary data from context by reference
+        this.removeNonMatchingData(context, property);
+        return context;
+    }
+
+    /**
+     * Filters the given context (database) by the given diacritic
+     * @param {string} diacritic - The diacritic to filter
+     * @param {object} context - The filter context (database, can already be
+     * filtered)
+     * @return {object} - The filtered database
+     */
+    handleDiacriticFilter(diacritic, context) {
+        return this.filterByData(val => {
+            return val === diacritic;
+        }, context);
     }
 
     /**
