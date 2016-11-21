@@ -14,7 +14,7 @@ class API {
      * Initializes the API
      */
     constructor() {
-        this.diacriticsURL = "https://git.io/vXK2F";
+        this.diacriticsURL = "https://git.io/vXdol";
         this.app = express();
         this.port = 8080;
         this.initializeRouting();
@@ -42,7 +42,7 @@ class API {
                 const [key, value] = part.split("=");
                 if(req.query[key] && value === req.query[key]) {
                     let fn = this.capitalizeFirstLetter(key.toLowerCase());
-                    fn = `filterBy${fn}`;
+                    fn = `handle${fn}Filter`;
                     if(typeof this[fn] === "function") {
                         response = this[fn](value, response);
                         if(typeof response.message !== "undefined") { // error
@@ -62,20 +62,33 @@ class API {
     }
 
     /**
+     * An object that has the language code as the key and an array of language
+     * variants as the value
+     * @typedef API~findByMetadataReturn
+     * @type {object.<array>}
+     */
+    /**
      * Searches for a specific metadata information inside the context and
-     * returns an array containing all found language codes
+     * returns all found language and variant codes
      * @param {string} key - The metadata name
      * @param {string} value - The metadata value to search for
-     * @return {array} - An array of found language codes
+     * @param {object} context - The filter context (database, can already be
+     * filtered)
+     * @return {API~findByMetadataReturn}
      */
     findByMetadata(key, value, context) {
-        let ret = [];
+        let ret = {};
         for(let lang in context) {
             if(context.hasOwnProperty(lang)) {
-                const meta = context[lang]["metadata"];
-                if(typeof meta[key] !== "undefined") {
-                    if(meta[key].toLowerCase() === value.toLowerCase()) {
-                        ret.push(lang);
+                for(let variant in context[lang]) {
+                    if(context[lang].hasOwnProperty(variant)) {
+                        const meta = context[lang][variant]["metadata"];
+                        if(meta[key].toLowerCase() === value.toLowerCase()) {
+                            if(typeof ret[lang] === "undefined") {
+                                ret[lang] = [];
+                            }
+                            ret[lang].push(variant);
+                        }
                     }
                 }
             }
@@ -84,28 +97,52 @@ class API {
     }
 
     /**
-     * Filters the database by language: Either a ISO 639-1 language code, the
-     * language written in English or in the native language
-     * @param {string} lang - The language to filter
-     * @param {object} context - The filter context
-     * @return {object}
+     * Filters the context (database) by the given language object containing
+     * languages and language variants
+     * @param {API~findByMetadataReturn} langObj
+     * @param {object} context - The filter context (database)
+     * @return {object} - The filtered database
      */
-    filterByLanguage(lang, context) {
-        lang = lang.toLowerCase();
+    filterByLanguage(langObj, context) {
         let ret = {};
+        for(let lang in langObj) {
+            if(langObj.hasOwnProperty(lang)) {
+                for(let variant of langObj[lang]) {
+                    if(typeof ret[lang] === "undefined") {
+                        ret[lang] = {};
+                    }
+                    ret[lang][variant] = context[lang][variant];
+                }
+            }
+        }
+        return ret;
+    }
+
+    /**
+     * Checks whether the given language is available in the database and if so,
+     * filters the database using <code>findByMetadata</code> and
+     * <code>filterByLanguage</code>.
+     * Language can either be a ISO 639-1 language code, the language written in
+     * English or in the native language
+     * @param {string} lang - The language to filter
+     * @param {object} context - The filter context (database, can already be
+     * filtered)
+     * @return {object} - The filtered database
+     */
+    handleLanguageFilter(lang, context) {
+        lang = lang.toLowerCase();
         if(typeof context[lang] !== "undefined") {
+            let ret = {};
             ret[lang] = context[lang];
             return ret;
         }
         const byLang = this.findByMetadata("language", lang, context);
-        if(byLang.length) {
-            ret[byLang[0]] = context[byLang[0]];
-            return ret;
+        if(Object.keys(byLang).length) {
+            return this.filterByLanguage(byLang, context);
         }
         const byNative = this.findByMetadata("native", lang, context);
-        if(byNative.length) {
-            ret[byNative[0]] = context[byNative[0]];
-            return ret;
+        if(Object.keys(byNative).length) {
+            return this.filterByLanguage(byNative, context);
         }
         return {
             "message": "Language was not found"
