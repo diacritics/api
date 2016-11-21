@@ -12,6 +12,8 @@ Please note that the database specification including its properties can be foun
 
 These filters don't manipulate the actual data, therefore the response will be almost identical like specified in [the specification](https://github.com/diacritics/database/tree/master/spec#31-diacriticsjson). The only difference is that it will only list languages or language variants that are matching the specified metadata filters.
 
+Note that metadata filter names and values are handled case insensitive.
+
 ### language
 
 Filters the response by language. Can be one of the following case insensitive values:

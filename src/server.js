@@ -12,17 +12,18 @@ class API {
 
     /**
      * Initializes the API
+     * @param {API~startCallback} cb - A callback function
      */
-    constructor() {
+    constructor(cb) {
         this.diacriticsURL = "https://git.io/vXN2T";
         this.app = express();
-        this.port = 8080;
+        this.port = 80;
         this.initializeRouting();
         fetch(this.diacriticsURL).then(res => {
             return res.json();
         }).then(json => {
             this.database = json;
-            this.start();
+            this.start(cb);
         });
     }
 
@@ -31,26 +32,18 @@ class API {
      */
     initializeRouting() {
         this.app.get("/", (req, res) => {
-            // filter in the arrangement of parameters
-            const url = decodeURI(req.url).replace(/^\/[\?]?/gmi, ""),
-                parts = url.split("&");
             let response = this.database;
-            for(let part of parts) {
-                if(!part) { // empty: no parameter
-                    continue;
-                }
-                const [key, value] = part.split("=");
-                if(req.query[key] && value === req.query[key]) {
-                    let fn = this.capitalizeFirstLetter(key.toLowerCase());
-                    fn = `handle${fn}Filter`;
-                    if(typeof this[fn] === "function") {
-                        response = this[fn](value, response);
-                        if(typeof response.message !== "undefined") { // error
-                            res.json(response);
-                            return;
-                        }
-                        continue;
+            for(let query in req.query) {
+                const [key, value] = [query, req.query[query]];
+                let fn = key.toLowerCase();
+                fn = `handle${fn.charAt(0).toUpperCase()}${fn.slice(1)}Filter`;
+                if(typeof this[fn] === "function") {
+                    response = this[fn](value, response);
+                    if(typeof response.message !== "undefined") { // error
+                        res.json(response);
+                        return;
                     }
+                    continue;
                 }
                 res.json({
                     message: `Invalid filter parameter '${key}'`
@@ -59,6 +52,30 @@ class API {
             }
             res.json(response);
         });
+    }
+
+    /**
+     * @callback API~forEachLanguageVariantCb
+     * @param {string} lang - The language
+     * @param {string} variant - The language variant
+     * @param {object} json - The data of the language variant
+     */
+    /**
+     * Calls the callback for each language variant (including the standard
+     * language)
+     * @param {object} context
+     * @param {API~forEachLanguageVariantCb} cb
+     */
+    forEachLanguageVariant(context, cb) {
+        for(let lang in context) {
+            if(context.hasOwnProperty(lang)) {
+                for(let variant in context[lang]) {
+                    if(context[lang].hasOwnProperty(variant)) {
+                        cb(lang, variant, context[lang][variant]);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -88,26 +105,20 @@ class API {
             return false;
         };
         let ret = {};
-        for(let lang in context) {
-            if(context.hasOwnProperty(lang)) {
-                for(let variant in context[lang]) {
-                    if(context[lang].hasOwnProperty(variant)) {
-                        const meta = context[lang][variant]["metadata"];
-                        if(typeof meta[key] === "undefined") {
-                            continue; // e.g. "variant" isn't always available
-                        } else if(Array.isArray(meta[key])) { // e.g. continent
-                            for(let item of meta[key]) {
-                                if(addIfEqual(item, value, lang, variant)) {
-                                    break;
-                                }
-                            }
-                        } else {
-                            addIfEqual(meta[key], value, lang, variant);
-                        }
+        this.forEachLanguageVariant(context, (lang, variant, json) => {
+            const meta = json["metadata"];
+            if(typeof meta[key] === "undefined") {
+                return; // e.g. "variant" isn't always available
+            } else if(Array.isArray(meta[key])) { // e.g. continent
+                for(let item of meta[key]) {
+                    if(addIfEqual(item, value, lang, variant)) {
+                        break;
                     }
                 }
+            } else {
+                addIfEqual(meta[key], value, lang, variant);
             }
-        }
+        });
         return ret;
     }
 
@@ -160,7 +171,7 @@ class API {
             return this.filterByLanguage(byNative, context);
         }
         return {
-            "message": "Language was not found"
+            "message": `Language '${lang}' was not found`
         };
     }
 
@@ -177,7 +188,7 @@ class API {
             return this.filterByLanguage(matches, context);
         }
         return {
-            "message": "Variant was not found"
+            "message": `Variant '${variant}' was not found`
         };
     }
 
@@ -195,7 +206,7 @@ class API {
             return this.filterByLanguage(matches, context);
         }
         return {
-            "message": "Alphabet was not found"
+            "message": `Alphabet '${alphabet}' was not found`
         };
     }
 
@@ -213,27 +224,26 @@ class API {
             return this.filterByLanguage(matches, context);
         }
         return {
-            "message": "Continent was not found"
+            "message": `Continent '${continent}' was not found`
         };
     }
 
     /**
-     * Capitalizes the first letter of the provided string
-     * @param {string} str
-     * @return {string}
+     * Start callback
+     * @callback API~startCallback
+     * @param {number} port - The port of the server
      */
-    capitalizeFirstLetter(str) {
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
     /**
      * Starts the server
+     * @param {API~startCallback} cb - A callback function
      */
-    start() {
+    start(cb) {
         this.app.listen(this.port, () => {
-            console.log(`Server started: http://localhost:${this.port}`);
+            cb(this.port);
         });
     }
 }
 
-new API();
+new API(port => {
+    console.log(`Server started: http://localhost:${port}`);
+});
