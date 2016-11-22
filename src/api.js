@@ -169,6 +169,7 @@ class API {
      * will be passed to the filter function
      */
     removeNonMatchingData(filterFn, context, property = null) {
+        context = JSON.parse(JSON.stringify(context)); // clone without ref
         this.forEachLanguageVariant(context, (lang, variant, json) => {
             for(let char in json.data) {
                 if(json.data.hasOwnProperty(char)) {
@@ -224,8 +225,7 @@ class API {
             }
         });
         context = this.filterByLanguage(matchingLanguages, context);
-        // remove unnecessary data from context by reference
-        this.removeNonMatchingData(filterFn, context, property);
+        context = this.removeNonMatchingData(filterFn, context, property);
         return context;
     }
 
