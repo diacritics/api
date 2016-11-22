@@ -5,7 +5,7 @@
  * Released under the MIT license https://git.io/vXK2G
  *****************************************************/
 "use strict";
-const API = require("./server");
+const API = require("./api");
 
 new API().start(port => {
     console.log(`Server started: http://localhost:${port}`);
