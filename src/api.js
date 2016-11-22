@@ -60,7 +60,7 @@ class API {
      * Initializes the error route
      */
     initializeErrorRoute() {
-        this.app.use((req, res, next) => {
+        this.app.use((req, res) => {
             res.status(404).send({
                 "message": "Sorry, something went wrong"
             });
@@ -167,6 +167,7 @@ class API {
      * information, e.g. <code>base</code> that will be passed to the filter
      * function. If the property is <code>null</code> the diacritic (key) itself
      * will be passed to the filter function
+     * @return {object} - The filtered database
      */
     removeNonMatchingData(filterFn, context, property = null) {
         context = JSON.parse(JSON.stringify(context)); // clone without ref
@@ -203,6 +204,7 @@ class API {
      * information, e.g. <code>base</code> that will be passed to the filter
      * function. If the property is <code>null</code> the diacritic (key) itself
      * will be passed to the filter function
+     * @return {object} - The filtered database
      */
     filterByData(filterFn, context, property = null) {
         let matchingLanguages = {};
@@ -247,11 +249,11 @@ class API {
             ret[lang] = context[lang];
             return ret;
         }
-        const byLang = this.findLanguageByMetadata("language", lang, context);
+        const byLang = this.findLanguageByMetadata("language", lang, context),
+            byNative = this.findLanguageByMetadata("native", lang, context);
         if(Object.keys(byLang).length) {
             return this.filterByLanguage(byLang, context);
         }
-        const byNative = this.findLanguageByMetadata("native", lang, context);
         if(Object.keys(byNative).length) {
             return this.filterByLanguage(byNative, context);
         }

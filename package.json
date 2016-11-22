@@ -30,7 +30,8 @@
   },
   "main": "src/start.js",
   "scripts": {
-    "start": "nodemon src/start.js 8080"
+    "start": "nodemon src/start.js 8080",
+    "linting": "./node_modules/.bin/eslint \"src/**\""
   },
   "private": true,
   "dependencies": {
@@ -38,6 +39,8 @@
     "node-fetch": "^1.6.3"
   },
   "devDependencies": {
+    "babel-eslint": "^7.1.1",
+    "eslint": "^3.10.2",
     "nodemon": "^1.11.0"
   }
 }

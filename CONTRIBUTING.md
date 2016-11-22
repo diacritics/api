@@ -18,4 +18,10 @@ $ npm start
 
 The development server will automatically restart the server on file changes.
 
+After you have done something check your syntax with running:
+
+```bash
+npm run linting
+```
+
 [node-js]: https://nodejs.org/en/
