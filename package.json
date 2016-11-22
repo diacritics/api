@@ -30,8 +30,7 @@
   },
   "main": "src/start.js",
   "scripts": {
-    "dev": "nodemon src/start.js 8080",
-    "start": "node src/start.js 80"
+    "start": "nodemon src/start.js 8080"
   },
   "private": true,
   "dependencies": {

@@ -13,15 +13,9 @@ $ npm install
 To start the API server for development run:
 
 ```bash
-$ npm run dev
-```
-
-For production run:
-
-```bash
 $ npm start
 ```
 
-The development server will automatically restart the server on file changes and uses a different port.
+The development server will automatically restart the server on file changes.
 
 [node-js]: https://nodejs.org/en/
