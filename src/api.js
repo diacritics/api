@@ -14,7 +14,7 @@ const express = require("express"),
 class API {
 
     constructor() {
-        this.diacriticsURL = "https://git.io/vXN2T";
+        this.diacriticsURL = "https://git.io/vXK2F";
         this.app = express();
         this.port = parseInt(process.argv.slice(2)[0]);
         this.database = {};
