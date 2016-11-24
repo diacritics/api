@@ -30,7 +30,7 @@
   },
   "main": "src/start.js",
   "scripts": {
-    "start": "nodemon src/start.js 8080",
+    "start": "nodemon src/start.js",
     "linting": "./node_modules/.bin/eslint \"src/**\""
   },
   "private": true,

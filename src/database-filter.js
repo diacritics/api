@@ -5,66 +5,70 @@
  * Released under the MIT license https://git.io/vXK2G
  *****************************************************/
 "use strict";
-const express = require("express"),
-    fetch = require("node-fetch");
+const fetch = require("node-fetch");
 
 /**
- * API
+ * DatabaseFilter
  */
-class API {
+class DatabaseFilter {
 
-    constructor() {
-        this.diacriticsURL = "https://git.io/vXK2F";
-        this.app = express();
-        this.port = parseInt(process.argv.slice(2)[0]);
+    /**
+     * Initializes a new DatabaseFilter instance
+     * @param {string} [databaseURL]
+     */
+    constructor(databaseURL = "https://git.io/vXK2F") {
+        this.databaseURL = databaseURL;
         this.database = {};
-        this.initializeFilterRoute();
-        this.initializeErrorRoute();
     }
 
     /**
-     * Initializes the filter route
+     * Loads and parses the database
+     * @return {Promise}
      */
-    initializeFilterRoute() {
-        this.app.get("/", (req, res) => {
-            let response = this.database;
-            for(let query of Object.keys(req.query)) {
-                const [key, value] = [query, req.query[query]];
-                let fn = key.toLowerCase();
-                fn = `handle${fn.charAt(0).toUpperCase()}${fn.slice(1)}Filter`;
-                if(typeof this[fn] === "function") {
-                    response = this[fn](value, response);
-                    if(typeof response !== "object" || response === null) {
-                        throw new Error("Invalid filter response");
-                    } else if(typeof response.message !== "undefined") {
-                        res.json(response);
-                        return;
-                    } else if(!Object.keys(response).length) {
-                        res.json({
-                            "message": "No entries found"
-                        });
-                        return;
-                    }
-                } else {
-                    res.json({
-                        "message": `Invalid filter parameter '${key}'`
-                    });
-                    return;
-                }
-            }
-            res.json(response);
-        });
-    }
-
-    /**
-     * Initializes the error route
-     */
-    initializeErrorRoute() {
-        this.app.use((req, res) => {
-            res.status(404).send({
-                "message": "Sorry, something went wrong"
+    init() {
+        return new Promise((resolve, reject) => {
+            fetch(this.databaseURL).then(res => {
+                return res.json();
+            }).then(json => {
+                this.database = json;
+                resolve();
+            }).catch(err => {
+                reject(err);
             });
         });
+    }
+
+    /**
+     * Filters the database by the given filters
+     * @param {object} [filters]
+     * @return {object}
+     */
+    filter(filters = {}) {
+        let response = this.database;
+        for(let query of Object.keys(filters)) {
+            const [key, value] = [query, filters[query]];
+            let fn = key.toLowerCase();
+            fn = `handle${fn.charAt(0).toUpperCase()}${fn.slice(1)}Filter`;
+            if(typeof this[fn] === "function") {
+                response = this[fn](value, response);
+                if(typeof response !== "object" || response === null) {
+                    return {
+                        "message": "Invalid filter response"
+                    };
+                } else if(typeof response.message !== "undefined") {
+                    return response;
+                } else if(!Object.keys(response).length) {
+                    return {
+                        "message": "No entries found"
+                    };
+                }
+            } else {
+                return {
+                    "message": `Invalid filter parameter '${key}'`
+                };
+            }
+        }
+        return response;
     }
 
     /**
@@ -367,26 +371,6 @@ class API {
             "message": `Decompose value '${decompose}' was not found`
         };
     }
-
-    /**
-     * Start callback
-     * @callback API~startCallback
-     * @param {number} port - The port of the server
-     */
-    /**
-     * Starts the server
-     * @param {API~startCallback} cb - A callback function
-     */
-    start(cb) {
-        fetch(this.diacriticsURL).then(res => {
-            return res.json();
-        }).then(json => {
-            this.database = json;
-            this.app.listen(this.port, () => {
-                cb(this.port);
-            });
-        });
-    }
 }
 
-module.exports = API;
+module.exports = DatabaseFilter;

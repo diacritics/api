@@ -1,1 +1,1 @@
-web: node src/start.js $PORT
+web: node src/start.js
