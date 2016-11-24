@@ -28,7 +28,7 @@ class API {
     initializeFilterRoute() {
         this.app.get("/", (req, res) => {
             let response = this.database;
-            for(let query in req.query) {
+            for(let query of Object.keys(req.query)) {
                 const [key, value] = [query, req.query[query]];
                 let fn = key.toLowerCase();
                 fn = `handle${fn.charAt(0).toUpperCase()}${fn.slice(1)}Filter`;
@@ -80,13 +80,9 @@ class API {
      * @param {API~forEachLanguageVariantCb} cb
      */
     forEachLanguageVariant(context, cb) {
-        for(let lang in context) {
-            if(context.hasOwnProperty(lang)) {
-                for(let variant in context[lang]) {
-                    if(context[lang].hasOwnProperty(variant)) {
-                        cb(lang, variant, context[lang][variant]);
-                    }
-                }
+        for(let lang of Object.keys(context)) {
+            for(let variant of Object.keys(context[lang])) {
+                cb(lang, variant, context[lang][variant]);
             }
         }
     }
@@ -144,14 +140,12 @@ class API {
      */
     filterByLanguage(langObj, context) {
         let ret = {};
-        for(let lang in langObj) {
-            if(langObj.hasOwnProperty(lang)) {
-                for(let variant of langObj[lang]) {
-                    if(typeof ret[lang] === "undefined") {
-                        ret[lang] = {};
-                    }
-                    ret[lang][variant] = context[lang][variant];
+        for(let lang of Object.keys(langObj)) {
+            for(let variant of langObj[lang]) {
+                if(typeof ret[lang] === "undefined") {
+                    ret[lang] = {};
                 }
+                ret[lang][variant] = context[lang][variant];
             }
         }
         return ret;
@@ -172,17 +166,15 @@ class API {
     removeNonMatchingData(filterFn, context, property = null) {
         context = JSON.parse(JSON.stringify(context)); // clone without ref
         this.forEachLanguageVariant(context, (lang, variant, json) => {
-            for(let char in json.data) {
-                if(json.data.hasOwnProperty(char)) {
-                    let param;
-                    if(property === null) {
-                        param = char;
-                    } else {
-                        param = json.data[char].mapping[property];
-                    }
-                    if(!filterFn(param)) {
-                        delete context[lang][variant].data[char];
-                    }
+            for(let char of Object.keys(json.data)) {
+                let param;
+                if(property === null) {
+                    param = char;
+                } else {
+                    param = json.data[char].mapping[property];
+                }
+                if(!filterFn(param)) {
+                    delete context[lang][variant].data[char];
                 }
             }
         });
@@ -209,20 +201,18 @@ class API {
     filterByData(filterFn, context, property = null) {
         let matchingLanguages = {};
         this.forEachLanguageVariant(context, (lang, variant, json) => {
-            for(let char in json.data) {
-                if(json.data.hasOwnProperty(char)) {
-                    let param;
-                    if(property === null) {
-                        param = char;
-                    } else {
-                        param = json.data[char].mapping[property];
+            for(let char of Object.keys(json.data)) {
+                let param;
+                if(property === null) {
+                    param = char;
+                } else {
+                    param = json.data[char].mapping[property];
+                }
+                if(filterFn(param)) {
+                    if(typeof matchingLanguages[lang] === "undefined") {
+                        matchingLanguages[lang] = [];
                     }
-                    if(filterFn(param)) {
-                        if(typeof matchingLanguages[lang] === "undefined") {
-                            matchingLanguages[lang] = [];
-                        }
-                        matchingLanguages[lang].push(variant);
-                    }
+                    matchingLanguages[lang].push(variant);
                 }
             }
         });
