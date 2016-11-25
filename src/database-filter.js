@@ -257,13 +257,24 @@ class DatabaseFilter {
     }
 
     /**
-     * Filters the given context (database) by the given variant
+     * Filters the given context (database) by the given language variant,
+     * either a metadata property <code>variant</code> or the language code
      * @param {string} variant - The language variant to filter
      * @param {object} context - The filter context (database, can already be
      * filtered)
      * @return {object} - The filtered database
      */
     handleVariantFilter(variant, context) {
+        let ret = {};
+        this.forEachLanguageVariant(context, (lang, langVariant, json) => {
+            if(langVariant === variant) {
+                ret[lang] = {};
+                ret[lang][langVariant] = json;
+            }
+        });
+        if(Object.keys(ret).length) {
+            return ret;
+        }
         const matches = this.findLanguageByMetadata(
             "variant", variant, context
         );

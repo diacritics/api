@@ -26,7 +26,7 @@ Filters the response by language. Can be one of the following case insensitive v
 
 ### variant
 
-Filters the response by a language variant.
+Filters the response by a language variant. Must be either written in English, e.g. `Austria` or the language variant code, e.g. `at`.
 
 **Example**: `/?variant=Austria`
 
