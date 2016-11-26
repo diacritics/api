@@ -14,9 +14,9 @@ class DatabaseFilter {
 
     /**
      * Initializes a new DatabaseFilter instance
-     * @param {string} [databaseURL]
+     * @param {string} databaseURL
      */
-    constructor(databaseURL = "https://git.io/vXK2F") {
+    constructor(databaseURL) {
         this.databaseURL = databaseURL;
         this.database = {};
     }
