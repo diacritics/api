@@ -4,7 +4,7 @@
 
 ## General
 
-The basic route of API v1 is `/v1/`. If you're calling it without any parameter, the response will be the entire diacritics database. But, you can provide one or more of the following parameters to filter the response. They are divided into two types, metadata filters and data filters, because they are returning different data. You can combine them if you need.
+The basic route of API v1 is `/v1/`, the full URL is http://api.diacritics.io/v1/. If you're calling it without any parameter, the response will be the entire diacritics database. But, you can provide one or more of the following parameters to filter the response. They are divided into two types, metadata filters and data filters, because they are returning different data. You can combine them if you need.
 
 Please note that the database specification including its properties can be found in [its repository](https://github.com/diacritics/database/tree/master/spec).
 
