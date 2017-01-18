@@ -42,10 +42,13 @@ class Server {
                     recursive(++i, end);
                 });
             } catch(e) {
-                end(); // require failed, version not found
+                end(--i); // require failed, version not found
             }
         };
-        recursive(1, () => {
+        recursive(1, lastVersion => {
+            this.app.get(`/`, (req, res) => {
+                res.redirect(`/v${lastVersion}/${req.url.split("/").pop()}`);
+            });
             this.app.use((req, res) => {
                 res.status(404).send("Sorry, something went wrong");
             });
