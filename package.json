@@ -11,18 +11,15 @@
   ],
   "license": "MIT",
   "homepage": "http://diacritics.io/",
-  "author": {
-    "name": "Julian Motz",
-    "url": "https://github.com/julmot"
-  },
+  "author": "The Diacritics Authors",
   "maintainers": [
     {
       "name": "Julian Motz",
-      "web": "https://github.com/julmot"
+      "url": "https://github.com/julmot"
     },
     {
       "name": "Rob Garrison",
-      "web": "https://github.com/Mottie"
+      "url": "https://github.com/Mottie"
     }
   ],
   "description": "An API for the diacritics database",
@@ -43,7 +40,7 @@
   },
   "devDependencies": {
     "babel-eslint": "^7.1.1",
-    "eslint": "^3.10.2",
+    "eslint": "^3.13.1",
     "nodemon": "^1.11.0"
   }
 }
