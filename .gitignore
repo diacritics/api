@@ -11,6 +11,7 @@ node_modules/
 
 # Personal
 TODO
+npm-debug.log*
 
 # Build
-npm-debug.log*
+build/

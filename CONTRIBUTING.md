@@ -21,7 +21,15 @@ The development server will automatically restart the server on file changes.
 After you have done something check your syntax with running:
 
 ```bash
-npm run linting
+$ npm run linting
 ```
+
+Also check if you've set the JSDOC comments correctly by running:
+
+```bash
+$ npm run doc
+```
+
+and opening `./build/doc`.
 
 [node-js]: https://nodejs.org/en/

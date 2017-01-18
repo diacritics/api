@@ -5,7 +5,9 @@
     "diacritic",
     "diacritics",
     "api",
-    "javascript"
+    "javascript",
+    "transliteration",
+    "transliterator"
   ],
   "license": "MIT",
   "homepage": "http://diacritics.io/",
@@ -31,7 +33,8 @@
   "main": "src/start.js",
   "scripts": {
     "start": "nodemon src/start.js",
-    "linting": "./node_modules/.bin/eslint \"src/**\""
+    "linting": "eslint \"src/**\"",
+    "doc": "jsdoc src/ -d build/doc/ -r"
   },
   "private": true,
   "dependencies": {

@@ -14,7 +14,7 @@ class Server {
 
     /**
      * Initializes a new server instance
-     * @param {number} [port]
+     * @param {number} [port=8080]
      */
     constructor(port = 8080) {
         this.port = port;
@@ -22,12 +22,12 @@ class Server {
     }
 
     /**
-     * Routing callback
-     * @callback API~routingCallback
+     * Initialization callback
+     * @callback Server~initCallback
      */
     /**
      * Initializes routing
-     * @param {API~routingCallback} cb - A callback function
+     * @param {Server~initCallback} cb - A callback function
      */
     initializeRouting(cb) {
         // initialize dynamic versioned routing, e.g. /v1/ if the class exists
@@ -55,12 +55,12 @@ class Server {
 
     /**
      * Start callback
-     * @callback API~startCallback
+     * @callback Server~startCallback
      * @param {number} port - The port of the server
      */
     /**
      * Starts the server
-     * @param {API~startCallback} cb - A callback function
+     * @param {Server~startCallback} cb - A callback function
      */
     start(cb) {
         this.initializeRouting(() => {

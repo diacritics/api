@@ -13,8 +13,9 @@ const fetch = require("node-fetch");
 class DatabaseFilter {
 
     /**
-     * Initializes a new DatabaseFilter instance
-     * @param {string} databaseURL
+     * Initializes a new DatabaseFilter instance. This method will be called
+     * from one of the versioned database filter classes. See e.g. ./v1/
+     * @param {string} databaseURL - The URL that points to the JSON database
      */
     constructor(databaseURL) {
         this.databaseURL = databaseURL;
@@ -22,7 +23,8 @@ class DatabaseFilter {
     }
 
     /**
-     * Loads and parses the database
+     * Loads and parses the database. This method will be called from the server
+     * while its initialization
      * @return {Promise}
      */
     init() {
@@ -39,8 +41,17 @@ class DatabaseFilter {
     }
 
     /**
-     * Filters the database by the given filters
-     * @param {object} [filters]
+     * An object containing one or multiple properties to filter. Have a look
+     * at the API spec to see the supported filter properties
+     * @see {@link https://github.com/diacritics/api/tree/master/spec}
+     * @typedef DatabaseFilter~filter
+     * @type {object.<string>}
+     */
+    /**
+     * Filters the database by the given filters. This is the method called
+     * from the server class on each request and should return the JSON response
+     * for the user
+     * @param {DatabaseFilter~filter} [filters]
      * @return {object}
      */
     filter(filters = {}) {
@@ -72,16 +83,16 @@ class DatabaseFilter {
     }
 
     /**
-     * @callback API~forEachLanguageVariantCb
+     * @callback DatabaseFilter~forEachLanguageVariantCb
      * @param {string} lang - The language
      * @param {string} variant - The language variant
      * @param {object} json - The data of the language variant
      */
     /**
-     * Calls the callback for each language variant (including the standard
-     * language)
+     * Iterates over each language variant – including the standard language –
+     * and calls the callback
      * @param {object} context
-     * @param {API~forEachLanguageVariantCb} cb
+     * @param {DatabaseFilter~forEachLanguageVariantCb} cb
      */
     forEachLanguageVariant(context, cb) {
         for(let lang of Object.keys(context)) {
@@ -94,7 +105,7 @@ class DatabaseFilter {
     /**
      * An object that has the language code as the key and an array of language
      * variants as the value
-     * @typedef API~findLanguageByMetadataReturn
+     * @typedef DatabaseFilter~findLanguageByMetadataReturn
      * @type {object.<array>}
      */
     /**
@@ -104,7 +115,7 @@ class DatabaseFilter {
      * @param {string} value - The metadata value to search for
      * @param {object} context - The filter context (database, can already be
      * filtered)
-     * @return {API~findLanguageByMetadataReturn}
+     * @return {DatabaseFilter~findLanguageByMetadataReturn}
      */
     findLanguageByMetadata(key, value, context) {
         const addIfEqual = (a, b, lang, variant) => {
@@ -138,7 +149,7 @@ class DatabaseFilter {
     /**
      * Filters the context (database) by the given language object containing
      * languages and language variants
-     * @param {API~findLanguageByMetadataReturn} langObj
+     * @param {DatabaseFilter~findLanguageByMetadataReturn} langObj
      * @param {object} context - The filter context (database)
      * @return {object} - The filtered database
      */
@@ -158,7 +169,7 @@ class DatabaseFilter {
     /**
      * Removes data from the given context, based on the return value of the
      * filter function
-     * @param {API~filterByData} filterFn
+     * @param {DatabaseFilter~filterByData} filterFn
      * @param {object} context - The filter context (database, can already be
      * filtered)
      * @param {string} [property=null] - The property name of a mapping
@@ -188,12 +199,12 @@ class DatabaseFilter {
     /**
      * A function that will be called to filter. It should return true when the
      * given value is to be kept, otherwise false
-     * @callback API~filterByData
+     * @callback DatabaseFilter~filterByData
      * @param {string} value - The value of the specified property
      */
     /**
      * Filters the given context by the given data property
-     * @param {API~filterByData} filterFn
+     * @param {DatabaseFilter~filterByData} filterFn
      * @param {object} context - The filter context (database, can already be
      * filtered)
      * @param {string} [property=null] - The property name of a mapping
