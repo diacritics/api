@@ -112,35 +112,29 @@ class DatabaseFilter {
      * Searches for a specific metadata information inside the context and
      * returns all found language and variant codes
      * @param {string} key - The metadata name
-     * @param {string} value - The metadata value to search for
+     * @param {string} value - The metadata value to search for. Can also be
+     * a string that contains multiple values separated by a comma
      * @param {object} context - The filter context (database, can already be
      * filtered)
      * @return {DatabaseFilter~findLanguageByMetadataReturn}
      */
     findLanguageByMetadata(key, value, context) {
-        const addIfEqual = (a, b, lang, variant) => {
-            if(a.toLowerCase() === b.toLowerCase()) {
+        value = value.includes(",") ? value.split(",") : [value];
+        let ret = {};
+        this.forEachLanguageVariant(context, (lang, variant, json) => {
+            let meta = json["metadata"][key];
+            if(typeof meta === "undefined") {
+                return; // e.g. "variant" isn't always available
+            }
+            meta = typeof meta === "string" ? [meta] : meta;
+            // compare if meta contains the specified value case insensitive
+            meta = meta.map(v => v.toLowerCase());
+            value = value.map(v => v.toLowerCase());
+            if(meta.some(v => value.includes(v))) {
                 if(typeof ret[lang] === "undefined") {
                     ret[lang] = [];
                 }
                 ret[lang].push(variant);
-                return true;
-            }
-            return false;
-        };
-        let ret = {};
-        this.forEachLanguageVariant(context, (lang, variant, json) => {
-            const meta = json["metadata"];
-            if(typeof meta[key] === "undefined") {
-                return; // e.g. "variant" isn't always available
-            } else if(Array.isArray(meta[key])) { // e.g. continent
-                for(let item of meta[key]) {
-                    if(addIfEqual(item, value, lang, variant)) {
-                        break;
-                    }
-                }
-            } else {
-                addIfEqual(meta[key], value, lang, variant);
             }
         });
         return ret;
