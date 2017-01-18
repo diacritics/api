@@ -38,9 +38,23 @@ Filters the response by alphabet. Must be a [ISO 15924](https://en.wikipedia.org
 
 ### continent
 
-Filters the response by continent. Must be a [ISO-3166](https://en.wikipedia.org/wiki/List_of_sovereign_states_and_dependent_territories_by_continent_%28data_file%29) continent code, e.g. `EU`.
+Filters the response by a continent. Must be a [ISO-3166](https://en.wikipedia.org/wiki/List_of_sovereign_states_and_dependent_territories_by_continent_%28data_file%29) continent code, e.g. `EU`.
 
 **Example**: `/v1/?continent=EU`
+
+Also multiple values can be specified, separated by a comma:
+
+**Example**: `/v1/?continent=EU,OC`
+
+### country
+
+Filters the response by a country, e.g. `DE`.
+
+**Example**: `/v1/?country=DE`
+
+Also multiple values can be specified, separated by a comma:
+
+**Example**: `/v1/?country=DE,AT`
 
 ## Data Filter Parameters
 

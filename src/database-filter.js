@@ -313,7 +313,8 @@ class DatabaseFilter {
 
     /**
      * Filters the given context (database) by the given continent. Continent
-     * must be a ISO ISO-3166 continent code, e.g. EU
+     * must be a ISO ISO-3166 continent code, e.g. EU. Can also be a string
+     * with multiple values, separated by a comma
      * @param {string} continent - The continent to filter
      * @param {object} context - The filter context (database, can already be
      * filtered)
@@ -328,6 +329,26 @@ class DatabaseFilter {
         }
         return {
             "message": `Continent '${continent}' was not found`
+        };
+    }
+
+    /**
+     * Filters the given context (database) by the given country, e.g. DE. Can
+     * also be a string with multiple values, separated by a comma
+     * @param {string} country - The country to filter
+     * @param {object} context - The filter context (database, can already be
+     * filtered)
+     * @return {object} - The filtered database
+     */
+    handleCountryFilter(country, context) {
+        const matches = this.findLanguageByMetadata(
+            "country", country, context
+        );
+        if(Object.keys(matches).length) {
+            return this.filterByLanguage(matches, context);
+        }
+        return {
+            "message": `Country '${country}' was not found`
         };
     }
 
