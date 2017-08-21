@@ -35,12 +35,13 @@
   },
   "private": true,
   "dependencies": {
-    "express": "^4.14.0",
-    "node-fetch": "^1.6.3"
+    "express": "^4.15.4",
+    "node-fetch": "^1.7.2"
   },
   "devDependencies": {
-    "babel-eslint": "^7.1.1",
-    "eslint": "^3.13.1",
+    "babel-eslint": "^7.2.3",
+    "eslint": "^4.5.0",
+    "jsdoc": "^3.5.4",
     "nodemon": "^1.11.0"
   }
 }
