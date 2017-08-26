@@ -1,6 +1,6 @@
 {
   "name": "diacritics-api",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "keywords": [
     "diacritic",
     "diacritics",
@@ -33,7 +33,6 @@
     "linting": "eslint \"src/**\"",
     "doc": "jsdoc src/ -d build/doc/ -r"
   },
-  "private": true,
   "dependencies": {
     "express": "^4.15.4",
     "node-fetch": "^1.7.2"
@@ -43,5 +42,6 @@
     "eslint": "^4.5.0",
     "jsdoc": "^3.5.4",
     "nodemon": "^1.11.0"
-  }
+  },
+  "private": true
 }

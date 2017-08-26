@@ -4,80 +4,111 @@
 
 ## General
 
-The basic route of API v1 is `/v1/`, the full URL is http://api.diacritics.io/v1/. If you're calling it without any parameter, the response will be the entire diacritics database. But, you can provide one or more of the following parameters to filter the response. They are divided into two types, metadata filters and data filters, because they are returning different data. You can combine them if you need.
+The basic route of API v1 is `/v1/`, the full URL is http://api.diacritics.io/v1/. If you're calling it without any parameter, the response will be the entire diacritics database. But, you can provide one or more of the following parameters to filter the response. Filters are processed in the sequence as they are handed over.  
+ Filters are divided into three types, language filters, metadata filters and data filters. You can combine all of them.
 
-Please note that the database specification including its properties can be found in [its repository](https://github.com/diacritics/database/tree/master/spec).
+The corresponding database specification including its properties can be found in [its repository](https://github.com/diacritics/database/tree/master/spec).
 
-## Metadata Filter Parameters
+## Language Filters
 
-These filters don't manipulate the actual data, therefore the response will be almost identical like specified in [the specification](https://github.com/diacritics/database/tree/master/spec#31-diacriticsjson). The only difference is that it will only list languages or language variants that are matching the specified metadata filters.
+These filters don't manipulate the actual data, therefore the response will be identical like specified in [the specification](https://github.com/diacritics/database/tree/master/spec#31-diacriticsjson). However, they will only return languages / language variants that are matching the specified filters.
 
-Note that metadata filter names and values are handled case insensitive.
+Note that language filter names and values are handled case insensitive.
 
 ### language
 
-Filters the response by language. Can be one of the following case insensitive values:
+Filters the response by a language. Must be one or multiple of the following values:
 
 - [ISO 639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) language code (e.g. `de`)
-- The language written in English
-- The language written in the native language
+- The language written in English (e.g. `German`)
+- The language written in the native language (e.g. `Deutsch`)
 
 **Example**: `/v1/?language=de`
 
+Multiple values must be specified by using a comma:
+
+**Example**: `/v1/?language=de,es`
+
 ### variant
 
-Filters the response by a language variant. Must be either written in English, e.g. `Austria` or the language variant code, e.g. `at`.
+Filters the response by a language variant. Must be one or multiple values either written in English, e.g. `German` or as the language variant code, e.g. `de`.
 
-**Example**: `/v1/?variant=Austria`
+**Example**: `/v1/?variant=German`
+
+Multiple values must be specified by using a comma:
+
+**Example**: `/v1/?variant=de,ch`
+
+## Metadata Filters
+
+These filters don't manipulate the actual data, therefore the response will be identical like specified in [the specification](https://github.com/diacritics/database/tree/master/spec#31-diacriticsjson). However, they will only return languages / language variants that are matching the specified filters.
+
+Note that metadata filter names and values are handled case insensitive.
 
 ###  alphabet
 
-Filters the response by alphabet. Must be a [ISO 15924](https://en.wikipedia.org/wiki/ISO_15924) code, e.g. `Latn`.
+Filters the response by an alphabet. Must be one or multiple [ISO 15924](https://en.wikipedia.org/wiki/ISO_15924) codes, e.g. `Latn`.
 
 **Example**: `/v1/?alphabet=Latn`
 
+Multiple values must be specified by using a comma:
+
+**Example**: `/v1/?alphabet=Latn,Jpan`
+
 ### continent
 
-Filters the response by a continent. Must be a [ISO-3166](https://en.wikipedia.org/wiki/List_of_sovereign_states_and_dependent_territories_by_continent_%28data_file%29) continent code, e.g. `EU`.
+Filters the response by a continent. Must be one or multiple [ISO-3166](https://en.wikipedia.org/wiki/List_of_sovereign_states_and_dependent_territories_by_continent_%28data_file%29) continent codes, e.g. `EU`.
 
 **Example**: `/v1/?continent=EU`
 
-Also multiple values can be specified, separated by a comma:
+Multiple values must be specified by using a comma:
 
 **Example**: `/v1/?continent=EU,OC`
 
 ### country
 
-Filters the response by a country, e.g. `DE`.
+Filters the response by one or multiple countries, e.g. `DE`.
 
 **Example**: `/v1/?country=DE`
 
-Also multiple values can be specified, separated by a comma:
+Multiple values must be specified by using a comma:
 
 **Example**: `/v1/?country=DE,AT`
 
-## Data Filter Parameters
+## Data Filters
 
-These filters will only list languages or language variants that are matching the specified data filters, just like the metadata filters. Additionally, they will only list the mapping information that match the filters.
+These filters will only return languages / language variants that are matching the specified data filters, just like the language and metadata filters. Additionally, they will only return those mapping information that match the specified filters.
 
 ### diacritic
 
-Filters the response by a specific diacritic. An example would be `ü`.  
+Filters the response by one or multiple specific diacritic characters. An example would be `ü`.  
 Please note that you might need to encode the diacritic, e.g. using [`encodeURI()`](http://www.w3schools.com/jsref/jsref_encodeuri.asp).
 
 **Example**: `/v1/?diacritic=%C3%BC`
 
+Multiple values must be specified by using a comma:
+
+**Example**: `/v1/?diacritic=%C3%BC,%C3%B6`
+
 ### base
 
-Filters the response by a specific `base` value. An example would be `u` in case of `ü`.
+Filters the response by one or multiple specific `base` values. An example would be `u` in case of `ü`.
 
 **Example**: `/v1/?base=u`
 
+Multiple values must be specified by using a comma:
+
+**Example**: `/v1/?base=u,o`
+
 ### decompose
 
-Filters the response by a specific `decompose` value. An example would be `ue` in case of `ü`.
+Filters the response by one or multiple specific `decompose` values. An example would be `ue` in case of `ü`.
 
 **Example**: `/v1/?decompose=ue`
+
+Multiple values must be specified by using a comma:
+
+**Example**: `/v1/?decompose=ue,oe`
 
 ## Fallback
 
