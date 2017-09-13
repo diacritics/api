@@ -27,7 +27,7 @@ Filters the response by a language. Must be one or multiple of the following val
 
 Multiple values must be specified by using a comma:
 
-**Example**: `/v1/?language=de,es`
+**Example**: `/v1/?language=German,es`
 
 ### variant
 
@@ -112,10 +112,12 @@ Multiple values must be specified by using a comma:
 
 ## Fallback
 
-If an invalid filter parameter is passed, the API will response a JSON containing a property `message` indicating the error message. Example:
+If an invalid filter parameter is passed, or the provided parameter value couldn't be found, the API will response a JSON containing a property `message` indicating the error message. Example:
 
 ```javascript
 {
-    "message": "Language was not found"
+    "message": "Languages 'te', 'st' weren't found"
 }
 ```
+
+Note: The API will only return error messages in case all provided parameter values couldn't be found. For example if you pass a language filter with two languages that exist, and one language that doesn't exist, it'll return these two found languages. This behavior was chosen to make it possible to define a huge list of languages, even if they're not all available yet. And if they are, they'll be automatically included in future.

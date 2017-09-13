@@ -58,9 +58,11 @@ class DatabaseFilter {
     let response = this.database;
     for (let query of Object.keys(filters)) {
       const [key, values] = [
-          query.toLowerCase(),
+          query.trim().toLowerCase(),
           // convert values divided by comma into array and filter empty values
-          filters[query].toLowerCase().split(',').filter(val => val)
+          filters[query].toLowerCase().split(',').filter(val => {
+            return val;
+          }).map(val => val.trim())
         ],
         fn = `handle${key.charAt(0).toUpperCase()}${key.slice(1)}Filter`;
       if (!values.length) {
@@ -132,9 +134,9 @@ class DatabaseFilter {
         return; // e.g. "variant" isn't always available
       }
       meta = typeof meta === 'string' ? [meta] : meta;
-      // compare if meta contains the specified value case insensitive
+      // compare case insensitive. Sources like `variant` may not always be
+      // case insensitive by default
       meta = meta.map(v => v.toLowerCase());
-      values = values.map(v => v.toLowerCase());
       if (meta.some(v => values.includes(v))) {
         if (typeof ret[lang] === 'undefined') {
           ret[lang] = [];
@@ -244,6 +246,30 @@ class DatabaseFilter {
     return `'${values.join('\', \'')}'`;
   }
 
+  /**
+   * Merges n languages together. Each language is an object containing an array
+   * of language variants. This method is necessary as Object.assign() doesn't
+   * merge deep arrays too
+   * @param {DatabaseFilter~findLanguageByMetadataReturn} languages
+   * @return {object} - A merged object
+   */
+  mergeLanguages(...languages) {
+    let ret = {};
+    languages.forEach(language => {
+      for (let lang of Object.keys(language)) {
+        if (typeof ret[lang] === 'undefined') {
+          ret[lang] = [];
+        }
+        for (let variant of language[lang]) {
+          if (!ret[lang].includes(variant)) {
+            ret[lang].push(variant);
+          }
+        }
+      }
+    });
+    return ret;
+  }
+
   // Language Filters-----------------------------------------------------------
 
   /**
@@ -260,25 +286,23 @@ class DatabaseFilter {
   handleLanguageFilter(languages, context) {
     let ret = {};
     // filter by the languages keys itself
-    languages.forEach(lang => {
-      if (typeof context[lang] !== 'undefined') {
-        ret[lang] = context[lang];
+    this.forEachLanguageVariant(context, (lang, variant) => {
+      if (languages.includes(lang)) {
+        if (typeof ret[lang] === 'undefined') {
+          ret[lang] = [];
+        }
+        ret[lang].push(variant);
       }
     });
     // filter by metadata properties languages and native
-    const byLang = this.findLanguageByMetadata('languages', languages, context),
+    const byLang = this.findLanguageByMetadata('language', languages, context),
       byNative = this.findLanguageByMetadata('native', languages, context);
-    if (Object.keys(byLang).length) {
-      ret = this.filterByLanguage(byLang, context);
-    }
-    if (Object.keys(byNative).length) {
-      ret = this.filterByLanguage(byNative, context);
-    }
+    ret = this.mergeLanguages(ret, byLang, byNative);
     if (Object.keys(ret).length) {
-      return ret;
+      return this.filterByLanguage(ret, context);
     } else {
       return {
-        'message': `Language(s) ${this.joinValues(languages)} weren't not found`
+        'message': `Languages ${this.joinValues(languages)} weren't found`
       };
     }
   }
@@ -293,17 +317,23 @@ class DatabaseFilter {
    */
   handleVariantFilter(variants, context) {
     let ret = {};
-    this.forEachLanguageVariant(context, (lang, langVariant, json) => {
+    this.forEachLanguageVariant(context, (lang, langVariant) => {
       if (variants.includes(langVariant)) {
-        ret[lang] = {};
-        ret[lang][langVariant] = json;
+        if (typeof ret[lang] === 'undefined') {
+          ret[lang] = [];
+        }
+        ret[lang].push(langVariant);
       }
     });
+    const byVariant = this.findLanguageByMetadata(
+      'variant', variants, context
+    );
+    ret = this.mergeLanguages(ret, byVariant);
     if (Object.keys(ret).length) {
-      return ret;
+      return this.filterByLanguage(ret, context);
     } else {
       return {
-        'message': `Variant(s) ${this.joinValues(variants)} weren't not found`
+        'message': `Variants ${this.joinValues(variants)} weren't found`
       };
     }
   }
@@ -331,7 +361,7 @@ class DatabaseFilter {
     } else {
       const join = this.joinValues(alphabets);
       return {
-        'message': `Alphabets(s) ${join} weren't not found`
+        'message': `Alphabetss ${join} weren't found`
       };
     }
   }
@@ -357,7 +387,7 @@ class DatabaseFilter {
     } else {
       const join = this.joinValues(continents);
       return {
-        'message': `Continent(s) ${join} weren't not found`
+        'message': `Continents ${join} weren't found`
       };
     }
   }
@@ -382,7 +412,7 @@ class DatabaseFilter {
     } else {
       const join = this.joinValues(countries);
       return {
-        'message': `Countries(s) ${join} weren't not found`
+        'message': `Countries ${join} weren't found`
       };
     }
   }
@@ -405,7 +435,7 @@ class DatabaseFilter {
     } else {
       const join = this.joinValues(diacritics);
       return {
-        'message': `Diacritic(s) ${join} weren't not found`
+        'message': `Diacritics ${join} weren't found`
       };
     }
   }
@@ -426,7 +456,7 @@ class DatabaseFilter {
     } else {
       const join = this.joinValues(bases);
       return {
-        'message': `Base(s) ${join} weren't not found`
+        'message': `Bases ${join} weren't found`
       };
     }
   }
@@ -447,7 +477,7 @@ class DatabaseFilter {
     } else {
       const join = this.joinValues(decomposes);
       return {
-        'message': `Decompose(s) ${join} weren't not found`
+        'message': `Decomposes ${join} weren't found`
       };
     }
   }
