@@ -31,7 +31,11 @@ Multiple values must be specified by using a comma:
 
 ### variant
 
-Filters the response by a language variant. Must be one or multiple values either written in English, e.g. `German` or as the language variant code, e.g. `de`.
+Filters the response by a language variant. Must be one or multiple of the following values:
+
+- The language variant code (e.g. `ch`)
+- The language variant written in English (e.g. `Swiss German`)
+- The language variant written in the native language (e.g. `Schweizerdeutsch`)
 
 **Example**: `/v1/?variant=German`
 
