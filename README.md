@@ -1,5 +1,7 @@
 # Diacritics API
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/diacritics/api.svg)](https://greenkeeper.io/)
+
 This repository contains the API for the diacritics database.
 
 ## Documentation
