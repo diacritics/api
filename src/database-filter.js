@@ -296,7 +296,9 @@ class DatabaseFilter {
     });
     // filter by metadata properties languages and native
     const byLang = this.findLanguageByMetadata('language', languages, context),
-      byNative = this.findLanguageByMetadata('native', languages, context);
+      byNative = this.findLanguageByMetadata(
+        'languageNative', languages, context
+      );
     ret = this.mergeLanguages(ret, byLang, byNative);
     if (Object.keys(ret).length) {
       return this.filterByLanguage(ret, context);
@@ -309,7 +311,8 @@ class DatabaseFilter {
 
   /**
    * Filters the given context (database) by the given language variant,
-   * either a metadata property <code>variant</code> or the language code
+   * either the language code, the language variant written in English or
+   * written in the native language
    * @param {string[]} variants - The language variants to filter
    * @param {object} context - The filter context (database, can already be
    * filtered)
@@ -325,10 +328,12 @@ class DatabaseFilter {
         ret[lang].push(langVariant);
       }
     });
-    const byVariant = this.findLanguageByMetadata(
-      'variant', variants, context
-    );
-    ret = this.mergeLanguages(ret, byVariant);
+    // filter by metadata properties variant and variantNative
+    const byVariant = this.findLanguageByMetadata('variant', variants, context),
+      byVariantNative = this.findLanguageByMetadata(
+        'variantNative', variants, context
+      );
+    ret = this.mergeLanguages(ret, byVariant, byVariantNative);
     if (Object.keys(ret).length) {
       return this.filterByLanguage(ret, context);
     } else {
