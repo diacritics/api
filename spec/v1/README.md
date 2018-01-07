@@ -33,9 +33,9 @@ Multiple values must be specified by using a comma:
 
 Filters the response by a language variant. Must be one or multiple of the following values:
 
-- The language variant code (e.g. `ch`)
-- The language variant written in English (e.g. `Swiss German`)
-- The language variant written in the native language (e.g. `Schweizerdeutsch`)
+- The language variant code (e.g. `ch`). Returns all variants regardless of the root language (if there's no `language` filter. May be multiple)
+- The language variant written in English. Returns only the corresponding variant (e.g. `Swiss German` only returns the `de-CH` variant)
+- The language variant written in the native language. Returns only the corresponding variant (e.g. `Swiss German` only returns the `de-CH` variant)
 
 **Example**: `/v1/?variant=German`
 
